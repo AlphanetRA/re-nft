@@ -149,6 +149,9 @@ contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
         );
     }
 
+    //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
+    // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
+
     function handleLend(IReNFT.CallData memory cd) private {
         for (uint256 i = cd.left; i < cd.right; i++) {
             ensureIsLendable(cd, i);
@@ -361,6 +364,9 @@ contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
         }
     }
 
+    //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
+    // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
+
     function bundleCall(
         function(IReNFT.CallData memory) handler,
         IReNFT.CallData memory cd
@@ -464,6 +470,9 @@ contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
         }
     }
 
+    //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
+    // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
+
     function getLending(
         address nftAddress,
         uint256 tokenID,
@@ -521,6 +530,9 @@ contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
             renting.rentedAt
         );
     }
+
+    //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
+    // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
 
     function createLendCallData(
         IReNFT.NFTStandard[] memory nftStandard,
@@ -630,6 +642,9 @@ contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
         }
     }
 
+    //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
+    // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
+
     function ensureIsNotZeroAddr(address addr) private pure {
         require(addr != address(0), "ReNFT::zero address");
     }
@@ -734,6 +749,9 @@ contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
         return
             nowTime - renting.rentedAt > renting.rentDuration * SECONDS_IN_DAY;
     }
+
+    //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
+    // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
 
     function setRentFee(uint256 newRentFee) external onlyAdmin {
         require(newRentFee < 10000, "ReNFT::fee exceeds 100pct");
