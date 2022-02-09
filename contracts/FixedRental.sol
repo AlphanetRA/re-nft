@@ -49,7 +49,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
     * @param tokenID token ID
     * @param rentDuration rent duration
     * @param rentPrice rent price
-    * @dev
+    * @dev called by lender
     */
     function lend(
         uint256 tokenID,
@@ -69,7 +69,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
     * @notice down token from marketplace
     * @param tokenID token ID
     * @param _lendingID lending ID
-    * @dev
+    * @dev called by lender
     */
     function stopLend(
         uint256 tokenID,
@@ -89,7 +89,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
     * @param tokenID token ID
     * @param _lendingID lending ID
     * @param rentDuration rent duration
-    * @dev
+    * @dev called by renter
     */
     function rent(
         uint256 tokenID,
@@ -110,7 +110,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
     * @param tokenID token ID
     * @param _lendingID lending ID
     * @param _rentingID renting ID
-    * @dev
+    * @dev called by renter
     */
     function claimRent(
         uint256 tokenID,
