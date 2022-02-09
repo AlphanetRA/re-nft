@@ -6,13 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 
 import "./interfaces/IReNFT.sol";
 
-contract ReNFT is IReNFT, ERC721Holder, ERC1155Receiver, ERC1155Holder {
+contract ReNFT is IReNFT, ERC721Holder {
     using SafeERC20 for ERC20;
 
     IResolver private resolver;
