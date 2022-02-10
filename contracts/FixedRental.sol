@@ -196,6 +196,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
         ensureIsNotNull(lending);
         ensureIsNull(renting);
         ensureIsRentable(lending, cd, msg.value, msg.sender);
+        distributeClaimPayment(lending);
 
         rentings[rentingIdentifier] = IFixedRental.Renting({
             renterAddress: payable(msg.sender),
@@ -231,8 +232,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
         ensureIsNotNull(lending);
         ensureIsNotNull(renting);
-        ensureIsClaimable(renting, block.timestamp);
-        distributeClaimPayment(lending);
+        ensureIsClaimable(renting, msg.sender, block.timestamp);
 
         lending.isLended = false;
         emit IFixedRental.RentClaimed(
@@ -432,8 +432,10 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
     function ensureIsClaimable(
         IFixedRental.Renting memory renting,
+        address msgSender,
         uint256 blockTimestamp
     ) private pure {
+        require(renting.renterAddress == msgSender, "FixedRental::not renter");
         require(
             isPastReturnDate(renting, blockTimestamp),
             "FixedRental::return date not passed"
