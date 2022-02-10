@@ -88,19 +88,16 @@ contract FixedRental is IFixedRental, ERC721Holder {
     * @notice rent token already lent from marketplace
     * @param tokenID token ID
     * @param _lendingID lending ID
-    * @param rentDuration rent duration
     * @dev called by renter
     */
     function rent(
         uint256 tokenID,
-        uint256 _lendingID,
-        uint8 rentDuration
+        uint256 _lendingID
     ) external payable override notPaused {
         handleRent(
             createRentCallData(
                 tokenID,
-                _lendingID,
-                rentDuration
+                _lendingID
             )
         );
     }
@@ -195,12 +192,12 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
         ensureIsNotNull(lending);
         ensureIsNull(renting);
-        ensureIsRentable(lending, cd, msg.value, msg.sender);
+        ensureIsRentable(lending, msg.value, msg.sender);
         distributeClaimPayment(lending);
 
         rentings[rentingIdentifier] = IFixedRental.Renting({
             renterAddress: payable(msg.sender),
-            rentDuration: cd.rentDuration,
+            rentDuration: lending.rentDuration,
             rentedAt: uint32(block.timestamp)
         });
         lendings[lendingIdentifier].isLended = true;
@@ -208,7 +205,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
             msg.sender,
             cd.lendingID,
             rentingID,
-            cd.rentDuration,
+            lending.rentDuration,
             renting.rentedAt
         );
         rentingID++;
@@ -342,14 +339,13 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
     function createRentCallData(
         uint256 tokenID,
-        uint256 _lendingID,
-        uint8 rentDuration
+        uint256 _lendingID
     ) private pure returns (CallData memory cd) {
         cd = CallData({
             tokenID: tokenID,
             lendingID: _lendingID,
             rentingID: 0,
-            rentDuration: rentDuration,
+            rentDuration: 0,
             rentPrice: 0
         });
     }
@@ -411,13 +407,12 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
     function ensureIsRentable(
         Lending memory lending,
-        CallData memory cd,
         uint256 value,
         address msgSender
     ) private pure {
         require(msgSender != lending.lenderAddress, "FixedRental::cant rent own nft");
-        require(cd.rentDuration <= type(uint8).max, "FixedRental::not uint8");
-        require(cd.rentDuration > 0, "FixedRental::duration is zero");
+        require(lending.rentDuration <= type(uint8).max, "FixedRental::not uint8");
+        require(lending.rentDuration > 0, "FixedRental::duration is zero");
         require(value >= lending.rentPrice, "FixedRental::not enough rent price");
         require(!lending.isLended, "FixedRental::renting");
     }
