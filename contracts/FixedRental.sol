@@ -262,9 +262,11 @@ contract FixedRental is IFixedRental, ERC721Holder {
         ERC20 paymentToken = ERC20(paymentTokenAddress);
         require(paymentToken.balanceOf(renter) >= lending.rentPrice, "FixedRental::not enough balance for rent price");
 
+        // platform fee
         if (rentFee != 0) {
             paymentToken.safeTransferFrom(renter, beneficiary, rentFee);
         }
+        
         paymentToken.safeTransferFrom(renter, lending.lenderAddress, lending.rentPrice - rentFee);
     }
 

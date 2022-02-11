@@ -12,6 +12,7 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
     using SafeERC20 for ERC20;
 
     address private nftAddress;
+    address private paymentTokenAddress;
     address private profitTokenAddress;
     address private admin;
     address payable private beneficiary;
@@ -34,16 +35,19 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
 
     constructor(
         address _nftAddress,
+        address _paymentTokenAddress,
         address _profitTokenAddress,
         address payable _beneficiary,
         address _admin,
         uint256 _rentFee
     ) {
         ensureIsNotZeroAddr(_nftAddress);
+        ensureIsNotZeroAddr(_paymentTokenAddress);
         ensureIsNotZeroAddr(_profitTokenAddress);
         ensureIsNotZeroAddr(_beneficiary);
         ensureIsNotZeroAddr(_admin);
         nftAddress = _nftAddress;
+        paymentTokenAddress = _paymentTokenAddress;
         profitTokenAddress = _profitTokenAddress;
         beneficiary = _beneficiary;
         admin = _admin;
@@ -96,7 +100,7 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
     function rent(
         uint256 tokenID,
         uint256 _lendingID
-    ) external payable override notPaused {
+    ) external override notPaused {
         handleRent(
             createRentCallData(
                 tokenID,
@@ -217,8 +221,8 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
 
         ensureIsNotNull(lending);
         ensureIsNull(renting);
-        ensureIsRentable(lending, msg.value, msg.sender, rentFee);
-        takeFee(rentFee);
+        ensureIsRentable(lending, msg.sender);
+        takeFee(msg.sender);
 
         rentings[rentingIdentifier] = IProfitShareRental.Renting({
             renterAddress: payable(msg.sender),
@@ -302,9 +306,12 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
     //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
     // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
 
-    function takeFee(uint256 fee) private {
-        require(address(this).balance > fee, "ProfitShareRental::not enough balance for rent fee");
-        beneficiary.transfer(fee);
+    function takeFee(address renter) private {
+        if (rentFee != 0) {
+            ERC20 paymentToken = ERC20(paymentTokenAddress);
+            require(paymentToken.balanceOf(renter) >= rentFee, "ProfitShareRental::not enough balance for rent fee");
+            paymentToken.safeTransferFrom(renter, beneficiary, rentFee);
+        }
     }
 
     //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
@@ -464,12 +471,9 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
 
     function ensureIsRentable(
         Lending memory lending,
-        uint256 value,
-        address msgSender,
-        uint256 _rentFee
+        address msgSender
     ) private pure {
         require(msgSender != lending.lenderAddress, "ProfitShareRental::cant rent own nft");
-        require(value >= _rentFee, "ProfitShareRental::not enough rent fee");
         require(!lending.isLended, "ProfitShareRental::renting");
     }
 
@@ -512,5 +516,9 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
 
     function setPaused(bool newPaused) external onlyAdmin {
         paused = newPaused;
+    }
+
+    function setPaymentTokenAddress(address newPaymentTokenAddress) external onlyAdmin {
+        paymentTokenAddress = newPaymentTokenAddress;
     }
 }
