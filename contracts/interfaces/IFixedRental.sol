@@ -59,7 +59,7 @@ interface IFixedRental {
     function rent(
         uint256 tokenID,
         uint256 lendingID
-    ) external payable;
+    ) external;
 
     function claimRent(
         uint256 tokenID,

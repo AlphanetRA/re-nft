@@ -3,12 +3,16 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./interfaces/IFixedRental.sol";
 
 contract FixedRental is IFixedRental, ERC721Holder {
+    using SafeERC20 for ERC20;
 
     address private nftAddress;
+    address private paymentTokenAddress;
     address private admin;
     address payable private beneficiary;
     uint256 private lendingID = 1;
@@ -31,14 +35,17 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
     constructor(
         address _nftAddress,
+        address _paymentTokenAddress,
         address payable _beneficiary,
         address _admin,
         uint256 _rentFee
     ) {
         ensureIsNotZeroAddr(_nftAddress);
+        ensureIsNotZeroAddr(_paymentTokenAddress);
         ensureIsNotZeroAddr(_beneficiary);
         ensureIsNotZeroAddr(_admin);
         nftAddress = _nftAddress;
+        paymentTokenAddress = _paymentTokenAddress;
         beneficiary = _beneficiary;
         admin = _admin;
         rentFee = _rentFee;
@@ -93,7 +100,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
     function rent(
         uint256 tokenID,
         uint256 _lendingID
-    ) external payable override notPaused {
+    ) external override notPaused {
         handleRent(
             createRentCallData(
                 tokenID,
@@ -192,8 +199,8 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
         ensureIsNotNull(lending);
         ensureIsNull(renting);
-        ensureIsRentable(lending, msg.value, msg.sender);
-        distributeClaimPayment(lending);
+        ensureIsRentable(lending, msg.sender);
+        distributeClaimPayment(lending, msg.sender);
 
         rentings[rentingIdentifier] = IFixedRental.Renting({
             renterAddress: payable(msg.sender),
@@ -242,21 +249,23 @@ contract FixedRental is IFixedRental, ERC721Holder {
     //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
     // `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'   `._.'
 
-    function takeFee(uint256 fee) private {
-        require(address(this).balance > fee, "FixedRental::not enough balance for rent fee");
-        beneficiary.transfer(fee);
-    }
-
     /**
     * @notice distribute payment to lender and beneficiary
     * @param lending lending
+    * @param renter renter
     * @dev
     */
     function distributeClaimPayment(
-        IFixedRental.Lending memory lending
+        IFixedRental.Lending memory lending,
+        address renter
     ) private {
-        if (rentFee != 0) takeFee(rentFee);
-        lending.lenderAddress.transfer(lending.rentPrice - rentFee);
+        ERC20 paymentToken = ERC20(paymentTokenAddress);
+        require(paymentToken.balanceOf(renter) >= lending.rentPrice, "FixedRental::not enough balance for rent price");
+
+        if (rentFee != 0) {
+            paymentToken.safeTransferFrom(renter, beneficiary, rentFee);
+        }
+        paymentToken.safeTransferFrom(renter, lending.lenderAddress, lending.rentPrice - rentFee);
     }
 
     //      .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.     .-.
@@ -407,13 +416,11 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
     function ensureIsRentable(
         Lending memory lending,
-        uint256 value,
         address msgSender
     ) private pure {
         require(msgSender != lending.lenderAddress, "FixedRental::cant rent own nft");
         require(lending.rentDuration <= type(uint8).max, "FixedRental::not uint8");
         require(lending.rentDuration > 0, "FixedRental::duration is zero");
-        require(value >= lending.rentPrice, "FixedRental::not enough rent price");
         require(!lending.isLended, "FixedRental::renting");
     }
 
@@ -460,5 +467,9 @@ contract FixedRental is IFixedRental, ERC721Holder {
 
     function setPaused(bool newPaused) external onlyAdmin {
         paused = newPaused;
+    }
+
+    function setPaymentTokenAddress(address newPaymentTokenAddress) external onlyAdmin {
+        paymentTokenAddress = newPaymentTokenAddress;
     }
 }
