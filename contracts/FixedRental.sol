@@ -266,7 +266,7 @@ contract FixedRental is IFixedRental, ERC721Holder {
         if (rentFee != 0) {
             paymentToken.safeTransferFrom(renter, beneficiary, rentFee);
         }
-        
+
         paymentToken.safeTransferFrom(renter, lending.lenderAddress, lending.rentPrice - rentFee);
     }
 
@@ -288,7 +288,8 @@ contract FixedRental is IFixedRental, ERC721Holder {
         returns (
             address,
             uint8,
-            uint256
+            uint256,
+            bool
         )
     {
         bytes32 identifier = keccak256(
@@ -298,7 +299,8 @@ contract FixedRental is IFixedRental, ERC721Holder {
         return (
             lending.lenderAddress,
             lending.rentDuration,
-            lending.rentPrice
+            lending.rentPrice,
+            lending.isLended
         );
     }
 
