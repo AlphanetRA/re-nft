@@ -289,7 +289,7 @@ contract ProfitShareRental is IProfitShareRental, ERC721Holder {
         
         ERC20 profitToken = ERC20(profitTokenAddress);
         require(profitToken.balanceOf(address(this)) >= cd.totalShareAmount, "ProfitShareRental::not enough profit");
-        uint256 amountToRenter = lending.profitPercentageToRenter / 100 * cd.totalShareAmount;
+        uint256 amountToRenter = lending.profitPercentageToRenter * cd.totalShareAmount / 100;
         uint256 amountToLender = cd.totalShareAmount - amountToRenter;
         profitToken.safeTransfer(lending.lenderAddress, amountToLender);
         profitToken.safeTransfer(renting.renterAddress, amountToRenter);
