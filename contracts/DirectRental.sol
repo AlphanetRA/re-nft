@@ -329,12 +329,10 @@ contract DirectRental is IDirectRental, ERC721Holder {
 
     function ensureIsNull(Lending memory lending) private pure {
         ensureIsZeroAddr(lending.lenderAddress);
-        require(!lending.isLended, "DirectRental::already lended");
     }
 
     function ensureIsNotNull(Lending memory lending) private pure {
         ensureIsNotZeroAddr(lending.lenderAddress);
-        require(lending.isLended, "DirectRental::not lended");
     }
 
     function ensureIsNull(Renting memory renting) private pure {
