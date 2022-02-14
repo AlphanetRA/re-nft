@@ -380,3 +380,63 @@ describe("ProfitShareRental", function () {
     expect(await profitToken.balanceOf(Bob.address)).to.equal(amountToBob);
   });
 });
+
+describe("DirectRental", function () {
+  let unicorn, paymentToken, directRental, rentFee = 100;
+
+  beforeEach(async () => {
+    [ , beneficiary, directRentalAdmin, Alice, Bob] = await ethers.getSigners();
+
+    const Unicorn = await ethers.getContractFactory("Unicorn");
+    unicorn = await Unicorn.deploy();
+    await unicorn.connect(Alice).mint();
+    await unicorn.connect(Bob).mint();
+
+    const PaymentToken = await hre.ethers.getContractFactory("PaymentToken");
+    paymentToken = await PaymentToken.deploy();
+    await paymentToken.transfer(Alice.address, 10000);
+    await paymentToken.transfer(Bob.address, 10000);
+
+    const DirectRental = await ethers.getContractFactory("DirectRental");
+    directRental = await DirectRental.deploy(
+      unicorn.address,
+      paymentToken.address,
+      beneficiary.address,
+      directRentalAdmin.address,
+      rentFee
+    );
+	});
+
+  it("Should be able to rent a unicorn", async function () {
+    let tokenId = 0;
+    let lendingId = 1;
+    let rentingId = 1;
+
+    await unicorn.connect(Alice).approve(directRental.address, tokenId);
+    await paymentToken.connect(Alice).approve(directRental.address, rentFee);
+
+    let block = await ethers.provider.getBlock();
+    expect(await directRental.connect(Alice).rent(tokenId, Bob.address))
+          .to.emit(directRental, "Lend")
+          .withArgs(Alice.address, tokenId, lendingId)
+          .to.emit(directRental, "Rent")
+          .withArgs(Bob.address, lendingId, rentingId, block.timestamp + 1);
+  });
+
+  it("Should be able to stop the renting", async function () {
+    let tokenId = 0;
+    let lendingId = 1;
+    let rentingId = 1;
+
+    await unicorn.connect(Alice).approve(directRental.address, tokenId);
+    await paymentToken.connect(Alice).approve(directRental.address, rentFee);
+    await directRental.connect(Alice).rent(tokenId, Bob.address);
+
+    let block = await ethers.provider.getBlock();
+    expect(await directRental.connect(Alice).claimRent(tokenId, lendingId, rentingId))
+          .to.emit(directRental, "RentClaimed")
+          .withArgs(rentingId, block.timestamp + 1)
+          .to.emit(directRental, "StopLend")
+          .withArgs(lendingId, block.timestamp + 1);
+  });
+});
