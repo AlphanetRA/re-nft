@@ -14,13 +14,19 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
+  const unicornAddress = "0xd35Db39aF0755AfFbF63E15162EB6923409d021e";
+  const paymentTokenAddress = "0xf62DF962140fB24FA74DbE15E8e8450a8d533245";
+  const beneficiaryAddress = "0x052f11157A23406F2A705fE78F2695009a6Ec022";
+  const directRentalAdmin = "0x43ad0f0585659a68faA72FE276e48B9d2a23B117";
+  const rentFee = 10000;
+
   const DirectRental = await hre.ethers.getContractFactory("DirectRental");
   const directRental = await DirectRental.deploy(
-    "0xd35Db39aF0755AfFbF63E15162EB6923409d021e",
-    "0xf62DF962140fB24FA74DbE15E8e8450a8d533245",
-    "0x052f11157A23406F2A705fE78F2695009a6Ec022",
-    "0x43ad0f0585659a68faA72FE276e48B9d2a23B117",
-    10000
+    unicornAddress,
+    paymentTokenAddress,
+    beneficiaryAddress,
+    directRentalAdmin,
+    rentFee
   );
 
   await directRental.deployed();

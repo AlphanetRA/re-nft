@@ -14,8 +14,9 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
+  const profitTokenAdmin = "0x43ad0f0585659a68faA72FE276e48B9d2a23B117";
   const ProfitToken = await hre.ethers.getContractFactory("ProfitToken");
-  const profitToken = await ProfitToken.deploy("0x43ad0f0585659a68faA72FE276e48B9d2a23B117");
+  const profitToken = await ProfitToken.deploy(profitTokenAdmin);
 
   await profitToken.deployed();
 
